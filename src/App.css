@@ -1,0 +1,80 @@
+.App {
+  text-align: center;
+}
+
+/* Page Containers */
+.home-container,
+.dashboard-container,
+.expenses-container,
+.budget-container {
+  padding: 1rem 0;
+}
+
+/* Section Styles */
+.features-section,
+.dashboard-summary,
+.expenses-list-section,
+.add-expense-section,
+.budget-overview,
+.budget-form-section,
+.category-budgets,
+.recent-expenses {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Summary Cards */
+.summary-card {
+  background-color: var(--background-light);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.summary-amount {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+}
+
+h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+ul {
+  text-align: left;
+}
+
+.App-header {
+  background-color: var(--primary-color);
+  min-height: 20vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 1vmin);
+  color: white;
+  padding: 20px 0;
+}
+
+.App-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
