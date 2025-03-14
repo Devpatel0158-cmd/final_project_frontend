@@ -1,0 +1,73 @@
+.custom-button {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Button Variants */
+.button-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.button-primary:hover:not(:disabled) {
+  background-color: #1b5e20;
+}
+
+.button-secondary {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.button-secondary:hover:not(:disabled) {
+  background-color: #388e3c;
+}
+
+.button-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.button-danger:hover:not(:disabled) {
+  background-color: #b71c1c;
+}
+
+.button-outline {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.button-outline:hover:not(:disabled) {
+  background-color: rgba(46, 125, 50, 0.1);
+}
+
+/* Button Sizes */
+.button-small {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.button-medium {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+}
+
+.button-large {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+}
+
+.button-full-width {
+  width: 100%;
+}

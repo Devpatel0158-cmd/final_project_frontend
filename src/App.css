@@ -61,6 +61,43 @@ ul {
   text-align: left;
 }
 
+/* Features Card Styles */
+.features-card {
+  margin: 2rem 0;
+}
+
+.features-list li {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.features-list li .badge {
+  margin-right: 0.8rem;
+  min-width: 70px;
+  text-align: center;
+}
+
+/* Home Actions Styles */
+.home-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .home-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .home-actions a {
+    width: 100%;
+    max-width: 250px;
+  }
+}
+
 .App-header {
   background-color: var(--primary-color);
   min-height: 20vh;
