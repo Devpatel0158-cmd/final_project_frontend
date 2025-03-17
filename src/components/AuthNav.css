@@ -1,0 +1,20 @@
+.auth-nav {
+  display: flex;
+  align-items: center;
+}
+
+.auth-nav-links {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.auth-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-greeting {
+  color: white;
+  font-weight: 500;
+}

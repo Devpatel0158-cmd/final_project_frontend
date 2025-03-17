@@ -38,6 +38,10 @@
   border-bottom: 2px solid white;
 }
 
+.navbar-spacer {
+  flex: 1;
+}
+
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
