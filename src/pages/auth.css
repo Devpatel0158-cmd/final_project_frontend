@@ -27,6 +27,23 @@
   text-decoration: underline;
 }
 
+.social-login-buttons {
+  margin-bottom: 1rem;
+}
+
+.forgot-password {
+  text-align: right;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.terms-policy {
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  color: #666;
+  text-align: center;
+}
+
 @media (max-width: 576px) {
   .login-container,
   .register-container {

@@ -5,7 +5,12 @@ import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
+import Form from '../components/forms/Form';
 import FormGroup from '../components/forms/FormGroup';
+import FormError from '../components/forms/FormError';
+import Divider from '../components/ui/Divider';
+import SocialButton from '../components/ui/SocialButton';
+import { GoogleIcon, FacebookIcon, GithubIcon } from '../components/ui/icons';
 import { isValidEmail, isNotEmpty } from '../utils/validationUtils';
 import './auth.css';
 
@@ -74,6 +79,28 @@ const Login = () => {
         }
     };
 
+    const handleSocialLogin = (provider) => {
+        setSubmitError('');
+        setLoading(true);
+
+        // Simulate a social login
+        setTimeout(() => {
+            try {
+                const userData = {
+                    id: 2,
+                    name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
+                    email: `user@${provider}.com`,
+                };
+                const token = `${provider}-token-12345`;
+
+                login(userData, token);
+            } catch (error) {
+                setSubmitError(`Login with ${provider} failed. Please try again.`);
+                setLoading(false);
+            }
+        }, 1000);
+    };
+
     return (
         <div className="login-container">
             <Card title="Login to Your Account" className="login-card">
@@ -81,7 +108,30 @@ const Login = () => {
                     <Alert type="danger" message={submitError} />
                 )}
 
-                <form onSubmit={handleSubmit}>
+                <div className="social-login-buttons">
+                    <SocialButton
+                        provider="google"
+                        icon={<GoogleIcon />}
+                        onClick={() => handleSocialLogin('google')}
+                        disabled={loading}
+                    />
+                    <SocialButton
+                        provider="facebook"
+                        icon={<FacebookIcon />}
+                        onClick={() => handleSocialLogin('facebook')}
+                        disabled={loading}
+                    />
+                    <SocialButton
+                        provider="github"
+                        icon={<GithubIcon />}
+                        onClick={() => handleSocialLogin('github')}
+                        disabled={loading}
+                    />
+                </div>
+
+                <Divider text="OR" />
+
+                <Form onSubmit={handleSubmit}>
                     <FormGroup>
                         <Input
                             label="Email"
@@ -94,6 +144,7 @@ const Login = () => {
                             error={errors.email}
                             required
                         />
+                        {errors.email && <FormError>{errors.email}</FormError>}
                     </FormGroup>
 
                     <FormGroup>
@@ -108,7 +159,14 @@ const Login = () => {
                             error={errors.password}
                             required
                         />
+                        {errors.password && <FormError>{errors.password}</FormError>}
                     </FormGroup>
+
+                    <div className="forgot-password">
+                        <Link to="/forgot-password" className="auth-link">
+                            Forgot password?
+                        </Link>
+                    </div>
 
                     <FormGroup>
                         <Button
@@ -120,7 +178,7 @@ const Login = () => {
                             {loading ? 'Logging in...' : 'Login'}
                         </Button>
                     </FormGroup>
-                </form>
+                </Form>
 
                 <div className="auth-links">
                     <p>

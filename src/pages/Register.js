@@ -5,7 +5,12 @@ import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
+import Form from '../components/forms/Form';
 import FormGroup from '../components/forms/FormGroup';
+import FormError from '../components/forms/FormError';
+import Divider from '../components/ui/Divider';
+import SocialButton from '../components/ui/SocialButton';
+import { GoogleIcon, FacebookIcon, GithubIcon } from '../components/ui/icons';
 import { isValidEmail, isNotEmpty, hasMinLength, valuesMatch } from '../utils/validationUtils';
 import './auth.css';
 
@@ -78,6 +83,25 @@ const Register = () => {
         }
     };
 
+    const handleSocialRegister = (provider) => {
+        setSubmitError('');
+        setLoading(true);
+
+        // Simulate social registration
+        setTimeout(() => {
+            try {
+                register(
+                    `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
+                    `user@${provider}.com`,
+                    'password'
+                );
+            } catch (error) {
+                setSubmitError(`Registration with ${provider} failed. Please try again.`);
+                setLoading(false);
+            }
+        }, 1000);
+    };
+
     return (
         <div className="register-container">
             <Card title="Create an Account" className="register-card">
@@ -85,7 +109,30 @@ const Register = () => {
                     <Alert type="danger" message={submitError} />
                 )}
 
-                <form onSubmit={handleSubmit}>
+                <div className="social-login-buttons">
+                    <SocialButton
+                        provider="google"
+                        icon={<GoogleIcon />}
+                        onClick={() => handleSocialRegister('google')}
+                        disabled={loading}
+                    />
+                    <SocialButton
+                        provider="facebook"
+                        icon={<FacebookIcon />}
+                        onClick={() => handleSocialRegister('facebook')}
+                        disabled={loading}
+                    />
+                    <SocialButton
+                        provider="github"
+                        icon={<GithubIcon />}
+                        onClick={() => handleSocialRegister('github')}
+                        disabled={loading}
+                    />
+                </div>
+
+                <Divider text="OR" />
+
+                <Form onSubmit={handleSubmit}>
                     <FormGroup>
                         <Input
                             label="Name"
@@ -98,6 +145,7 @@ const Register = () => {
                             error={errors.name}
                             required
                         />
+                        {errors.name && <FormError>{errors.name}</FormError>}
                     </FormGroup>
 
                     <FormGroup>
@@ -112,6 +160,7 @@ const Register = () => {
                             error={errors.email}
                             required
                         />
+                        {errors.email && <FormError>{errors.email}</FormError>}
                     </FormGroup>
 
                     <FormGroup>
@@ -126,6 +175,7 @@ const Register = () => {
                             error={errors.password}
                             required
                         />
+                        {errors.password && <FormError>{errors.password}</FormError>}
                     </FormGroup>
 
                     <FormGroup>
@@ -140,7 +190,14 @@ const Register = () => {
                             error={errors.confirmPassword}
                             required
                         />
+                        {errors.confirmPassword && <FormError>{errors.confirmPassword}</FormError>}
                     </FormGroup>
+
+                    <div className="terms-policy">
+                        By registering, you agree to our{' '}
+                        <Link to="#" className="auth-link">Terms of Service</Link> and{' '}
+                        <Link to="#" className="auth-link">Privacy Policy</Link>.
+                    </div>
 
                     <FormGroup>
                         <Button
@@ -152,7 +209,7 @@ const Register = () => {
                             {loading ? 'Creating account...' : 'Register'}
                         </Button>
                     </FormGroup>
-                </form>
+                </Form>
 
                 <div className="auth-links">
                     <p>

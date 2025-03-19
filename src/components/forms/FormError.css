@@ -1,0 +1,13 @@
+.form-error {
+  color: var(--danger-color);
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  display: flex;
+  align-items: center;
+}
+
+.form-error::before {
+  content: "⚠";
+  display: inline-block;
+  margin-right: 0.3rem;
+}
