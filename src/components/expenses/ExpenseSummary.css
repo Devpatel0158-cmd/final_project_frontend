@@ -1,0 +1,79 @@
+.expense-summary {
+  margin-bottom: 2rem;
+}
+
+.expense-summary-loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-item {
+  background-color: var(--background-light);
+  border-radius: 8px;
+  padding: 1.2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.summary-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.summary-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.category-breakdown {
+  margin-top: 1.5rem;
+  border-top: 1px solid #eee;
+  padding-top: 1.5rem;
+}
+
+.category-breakdown h3 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.category-item:last-child {
+  border-bottom: none;
+}
+
+.category-name {
+  font-weight: 500;
+}
+
+.category-amount {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.no-categories {
+  text-align: center;
+  padding: 1rem;
+  color: #888;
+}

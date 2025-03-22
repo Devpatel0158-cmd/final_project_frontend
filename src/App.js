@@ -4,6 +4,7 @@ import './App.css';
 
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
+import { ExpenseProvider } from './contexts/ExpenseContext';
 
 // Components
 import Layout from './components/Layout';
@@ -21,27 +22,29 @@ import Register from './pages/Register';
 function App() {
     return (
         <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    {/* Public Layout Routes */}
-                    <Route path="/" element={<Layout />}>
-                        <Route index element={<Home />} />
+            <ExpenseProvider>
+                <BrowserRouter>
+                    <Routes>
+                        {/* Public Layout Routes */}
+                        <Route path="/" element={<Layout />}>
+                            <Route index element={<Home />} />
 
-                        {/* Auth Routes - accessible only when NOT authenticated */}
-                        <Route element={<PublicRoute />}>
-                            <Route path="login" element={<Login />} />
-                            <Route path="register" element={<Register />} />
-                        </Route>
+                            {/* Auth Routes - accessible only when NOT authenticated */}
+                            <Route element={<PublicRoute />}>
+                                <Route path="login" element={<Login />} />
+                                <Route path="register" element={<Register />} />
+                            </Route>
 
-                        {/* Protected Routes - accessible only when authenticated */}
-                        <Route element={<ProtectedRoute />}>
-                            <Route path="dashboard" element={<Dashboard />} />
-                            <Route path="expenses" element={<Expenses />} />
-                            <Route path="budget" element={<Budget />} />
+                            {/* Protected Routes - accessible only when authenticated */}
+                            <Route element={<ProtectedRoute />}>
+                                <Route path="dashboard" element={<Dashboard />} />
+                                <Route path="expenses" element={<Expenses />} />
+                                <Route path="budget" element={<Budget />} />
+                            </Route>
                         </Route>
-                    </Route>
-                </Routes>
-            </BrowserRouter>
+                    </Routes>
+                </BrowserRouter>
+            </ExpenseProvider>
         </AuthProvider>
     );
 }
