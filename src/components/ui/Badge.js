@@ -3,21 +3,15 @@ import './Badge.css';
 
 const Badge = ({
     children,
-    variant = 'primary',
+    color = 'primary',
     size = 'medium',
-    rounded = false,
-    className = ''
+    className = '',
+    ...props
 }) => {
-    const badgeClasses = [
-        'badge',
-        `badge-${variant}`,
-        `badge-${size}`,
-        rounded ? 'badge-rounded' : '',
-        className
-    ].filter(Boolean).join(' ');
+    const badgeClassName = `badge badge-${color} badge-${size} ${className}`;
 
     return (
-        <span className={badgeClasses}>
+        <span className={badgeClassName} {...props}>
             {children}
         </span>
     );

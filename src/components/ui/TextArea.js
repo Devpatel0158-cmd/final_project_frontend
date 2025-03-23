@@ -1,43 +1,44 @@
 import React from 'react';
-import './Select.css';
+import './TextArea.css';
 
-const Select = ({
+const TextArea = ({
     label,
     id,
     name,
     value,
     onChange,
-    children,
+    placeholder = '',
+    rows = 4,
     required = false,
     error = null,
     disabled = false,
     className = '',
     ...props
 }) => {
-    const selectClassName = `form-select ${error ? 'has-error' : ''} ${className}`;
+    const textareaClassName = `form-textarea ${error ? 'has-error' : ''} ${className}`;
 
     return (
-        <div className="select-container">
+        <div className="textarea-container">
             {label && (
                 <label htmlFor={id} className="form-label">
                     {label}
                     {required && <span className="required-indicator">*</span>}
                 </label>
             )}
-            <select
+            <textarea
                 id={id}
                 name={name}
                 value={value}
                 onChange={onChange}
-                className={selectClassName}
+                placeholder={placeholder}
+                rows={rows}
+                className={textareaClassName}
                 required={required}
                 disabled={disabled}
                 {...props}
-            >
-                {children}
-            </select>
+            />
         </div>
     );
 };
 
-export default Select; 
+export default TextArea; 

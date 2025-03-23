@@ -15,6 +15,8 @@ import PublicRoute from './components/PublicRoute';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
+import AddExpense from './pages/AddExpense';
+import EditExpense from './pages/EditExpense';
 import Budget from './pages/Budget';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -39,6 +41,8 @@ function App() {
                             <Route element={<ProtectedRoute />}>
                                 <Route path="dashboard" element={<Dashboard />} />
                                 <Route path="expenses" element={<Expenses />} />
+                                <Route path="expenses/new" element={<AddExpense />} />
+                                <Route path="expenses/edit/:id" element={<EditExpense />} />
                                 <Route path="budget" element={<Budget />} />
                             </Route>
                         </Route>

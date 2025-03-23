@@ -1,29 +1,30 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import ExpenseSummary from '../components/expenses/ExpenseSummary';
+import RecentExpenses from '../components/expenses/RecentExpenses';
+import Button from '../components/ui/Button';
+import './Dashboard.css';
 
 const Dashboard = () => {
     return (
         <div className="dashboard-container">
-            <h2>Dashboard</h2>
-            <p>Welcome to your financial dashboard. Here you can see an overview of your expenses.</p>
-
-            <div className="dashboard-summary">
-                <div className="summary-card">
-                    <h3>Total Expenses</h3>
-                    <p className="summary-amount">$0.00</p>
-                </div>
-                <div className="summary-card">
-                    <h3>Monthly Budget</h3>
-                    <p className="summary-amount">$0.00</p>
-                </div>
-                <div className="summary-card">
-                    <h3>Remaining</h3>
-                    <p className="summary-amount">$0.00</p>
-                </div>
+            <div className="dashboard-header">
+                <h1>Dashboard</h1>
+                <Link to="/expenses/new">
+                    <Button variant="primary">Add New Expense</Button>
+                </Link>
             </div>
 
-            <div className="recent-expenses">
-                <h3>Recent Expenses</h3>
-                <p>No expenses recorded yet. Add your first expense to see it here.</p>
+            <div className="dashboard-grid">
+                {/* Summary section */}
+                <div className="dashboard-section summary-section">
+                    <ExpenseSummary />
+                </div>
+
+                {/* Recent expenses section */}
+                <div className="dashboard-section recent-section">
+                    <RecentExpenses />
+                </div>
             </div>
         </div>
     );
