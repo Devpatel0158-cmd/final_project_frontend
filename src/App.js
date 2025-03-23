@@ -5,6 +5,7 @@ import './App.css';
 // Context Providers
 import { AuthProvider } from './contexts/AuthContext';
 import { ExpenseProvider } from './contexts/ExpenseContext';
+import { BudgetProvider } from './contexts/BudgetContext';
 
 // Components
 import Layout from './components/Layout';
@@ -18,6 +19,8 @@ import Expenses from './pages/Expenses';
 import AddExpense from './pages/AddExpense';
 import EditExpense from './pages/EditExpense';
 import Budget from './pages/Budget';
+import AddBudget from './pages/AddBudget';
+import EditBudget from './pages/EditBudget';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -25,29 +28,33 @@ function App() {
     return (
         <AuthProvider>
             <ExpenseProvider>
-                <BrowserRouter>
-                    <Routes>
-                        {/* Public Layout Routes */}
-                        <Route path="/" element={<Layout />}>
-                            <Route index element={<Home />} />
+                <BudgetProvider>
+                    <BrowserRouter>
+                        <Routes>
+                            {/* Public Layout Routes */}
+                            <Route path="/" element={<Layout />}>
+                                <Route index element={<Home />} />
 
-                            {/* Auth Routes - accessible only when NOT authenticated */}
-                            <Route element={<PublicRoute />}>
-                                <Route path="login" element={<Login />} />
-                                <Route path="register" element={<Register />} />
-                            </Route>
+                                {/* Auth Routes - accessible only when NOT authenticated */}
+                                <Route element={<PublicRoute />}>
+                                    <Route path="login" element={<Login />} />
+                                    <Route path="register" element={<Register />} />
+                                </Route>
 
-                            {/* Protected Routes - accessible only when authenticated */}
-                            <Route element={<ProtectedRoute />}>
-                                <Route path="dashboard" element={<Dashboard />} />
-                                <Route path="expenses" element={<Expenses />} />
-                                <Route path="expenses/new" element={<AddExpense />} />
-                                <Route path="expenses/edit/:id" element={<EditExpense />} />
-                                <Route path="budget" element={<Budget />} />
+                                {/* Protected Routes - accessible only when authenticated */}
+                                <Route element={<ProtectedRoute />}>
+                                    <Route path="dashboard" element={<Dashboard />} />
+                                    <Route path="expenses" element={<Expenses />} />
+                                    <Route path="expenses/new" element={<AddExpense />} />
+                                    <Route path="expenses/edit/:id" element={<EditExpense />} />
+                                    <Route path="budget" element={<Budget />} />
+                                    <Route path="budget/new" element={<AddBudget />} />
+                                    <Route path="budget/edit/:id" element={<EditBudget />} />
+                                </Route>
                             </Route>
-                        </Route>
-                    </Routes>
-                </BrowserRouter>
+                        </Routes>
+                    </BrowserRouter>
+                </BudgetProvider>
             </ExpenseProvider>
         </AuthProvider>
     );
