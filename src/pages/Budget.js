@@ -31,9 +31,14 @@ const Budget = () => {
         <div className="budget-page">
             <div className="budget-header">
                 <h1>Budget Management</h1>
-                <Link to="/budget/new" className="btn btn-primary">
-                    <FaPlus /> Add Budget
-                </Link>
+                <div className="budget-actions">
+                    <Link to="/budgets" className="btn btn-secondary">
+                        Try New Budgets Interface
+                    </Link>
+                    <Link to="/budget/new" className="btn btn-primary">
+                        <FaPlus /> Add Budget
+                    </Link>
+                </div>
             </div>
 
             {budgets.length === 0 ? (

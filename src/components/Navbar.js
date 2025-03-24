@@ -35,6 +35,11 @@ const Navbar = () => {
                             Budget
                         </NavLink>
                     </li>
+                    <li>
+                        <NavLink to="/budgets" className={({ isActive }) => isActive ? 'active' : ''}>
+                            Budgets v2
+                        </NavLink>
+                    </li>
                 </ul>
             ) : (
                 <div className="navbar-spacer"></div>

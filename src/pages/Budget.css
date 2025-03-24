@@ -39,6 +39,16 @@
   background-color: var(--color-primary-dark);
 }
 
+.btn-secondary {
+  background-color: #757575;
+  color: white;
+  border: none;
+}
+
+.btn-secondary:hover {
+  background-color: #616161;
+}
+
 .loading,
 .error,
 .no-budgets {
@@ -93,7 +103,8 @@
 
 .budget-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
+  align-items: center;
 }
 
 .btn-icon {

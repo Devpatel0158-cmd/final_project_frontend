@@ -21,6 +21,9 @@ import EditExpense from './pages/EditExpense';
 import Budget from './pages/Budget';
 import AddBudget from './pages/AddBudget';
 import EditBudget from './pages/EditBudget';
+import Budgets from './pages/Budgets';
+import AddBudgetNew from './pages/AddBudgetNew';
+import EditBudgetNew from './pages/EditBudgetNew';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -47,9 +50,16 @@ function App() {
                                     <Route path="expenses" element={<Expenses />} />
                                     <Route path="expenses/new" element={<AddExpense />} />
                                     <Route path="expenses/edit/:id" element={<EditExpense />} />
+
+                                    {/* Original Budget Routes */}
                                     <Route path="budget" element={<Budget />} />
                                     <Route path="budget/new" element={<AddBudget />} />
                                     <Route path="budget/edit/:id" element={<EditBudget />} />
+
+                                    {/* New Budgets Routes */}
+                                    <Route path="budgets" element={<Budgets />} />
+                                    <Route path="budgets/new" element={<AddBudgetNew />} />
+                                    <Route path="budgets/edit/:id" element={<EditBudgetNew />} />
                                 </Route>
                             </Route>
                         </Routes>
