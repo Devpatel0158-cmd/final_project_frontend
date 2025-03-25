@@ -1,19 +1,21 @@
 import React from 'react';
+import { Box, Paper, Typography } from '@mui/material';
 import BudgetForm from '../components/budgets/BudgetForm';
-import './BudgetFormPages.css';
 
 const AddBudgetNew = () => {
     return (
-        <div className="budget-form-page">
-            <div className="budget-form-container">
-                <div className="page-title">
-                    <h1>Create New Budget</h1>
-                    <p>Set up a budget to help track your spending</p>
-                </div>
+        <Box sx={{ p: 3 }}>
+            <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto' }}>
+                <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+                    Create New Budget
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary" paragraph>
+                    Set up a budget to help track your spending
+                </Typography>
 
                 <BudgetForm />
-            </div>
-        </div>
+            </Paper>
+        </Box>
     );
 };
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Box, Paper, Typography, Button, CircularProgress, Alert } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useBudgets } from '../contexts/BudgetContext';
 import BudgetForm from '../components/budgets/BudgetForm';
-import './BudgetFormPages.css';
 
 const EditBudgetNew = () => {
     const { id } = useParams();
@@ -33,40 +34,47 @@ const EditBudgetNew = () => {
 
     if (loading) {
         return (
-            <div className="budget-form-page">
-                <div className="loading">Loading budget information...</div>
-            </div>
+            <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                <CircularProgress />
+            </Box>
         );
     }
 
     if (notFound) {
         return (
-            <div className="budget-form-page">
-                <div className="not-found">
-                    <h2>Budget Not Found</h2>
-                    <p>The budget you are trying to edit could not be found.</p>
-                    <button
-                        className="btn btn-primary"
+            <Box sx={{ p: 3 }}>
+                <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto', textAlign: 'center' }}>
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Budget Not Found
+                    </Typography>
+                    <Alert severity="error" sx={{ mb: 3 }}>
+                        The budget you are trying to edit could not be found.
+                    </Alert>
+                    <Button
+                        variant="contained"
+                        startIcon={<ArrowBackIcon />}
                         onClick={() => navigate('/budgets')}
                     >
                         Back to Budgets
-                    </button>
-                </div>
-            </div>
+                    </Button>
+                </Paper>
+            </Box>
         );
     }
 
     return (
-        <div className="budget-form-page">
-            <div className="budget-form-container">
-                <div className="page-title">
-                    <h1>Edit Budget</h1>
-                    <p>Update your budget information</p>
-                </div>
+        <Box sx={{ p: 3 }}>
+            <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: 'auto' }}>
+                <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+                    Edit Budget
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary" paragraph>
+                    Update your budget information
+                </Typography>
 
                 {budget && <BudgetForm budget={budget} />}
-            </div>
-        </div>
+            </Paper>
+        </Box>
     );
 };
 

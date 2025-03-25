@@ -1,180 +1,285 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBudgets } from '../../contexts/BudgetsContext';
-import { useCategories } from '../../contexts/CategoriesContext';
-import './BudgetForm.css';
+import {
+    Box,
+    TextField,
+    Button,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    FormHelperText,
+    Grid,
+    InputAdornment,
+    FormControlLabel,
+    Switch,
+    CircularProgress,
+    Alert,
+    Divider,
+    Stack
+} from '@mui/material';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { useBudgets } from '../../contexts/BudgetContext';
+import { EXPENSE_CATEGORIES } from '../../models/Expense';
 
 const BudgetForm = ({ budget = null }) => {
     const navigate = useNavigate();
     const { addBudget, updateBudget } = useBudgets();
-    const { categories } = useCategories();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const [formData, setFormData] = useState({
-        title: '',
+    const [formValues, setFormValues] = useState({
+        name: '',
         amount: '',
-        categoryId: '',
-        startDate: '',
-        endDate: '',
+        category: '',
+        startDate: new Date(),
+        endDate: null,
         isActive: true
     });
 
+    const [formErrors, setFormErrors] = useState({});
+
     useEffect(() => {
         if (budget) {
-            setFormData({
-                title: budget.title,
-                amount: budget.amount,
-                categoryId: budget.categoryId || '',
-                startDate: budget.startDate ? new Date(budget.startDate).toISOString().split('T')[0] : '',
-                endDate: budget.endDate ? new Date(budget.endDate).toISOString().split('T')[0] : '',
-                isActive: budget.isActive
+            setFormValues({
+                name: budget.name || '',
+                amount: budget.amount ? budget.amount.toString() : '',
+                category: budget.category || '',
+                startDate: budget.startDate ? new Date(budget.startDate) : new Date(),
+                endDate: budget.endDate ? new Date(budget.endDate) : null,
+                isActive: budget.isActive !== undefined ? budget.isActive : true
             });
         }
     }, [budget]);
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
+    const handleInputChange = (e) => {
+        const { name, value, checked } = e.target;
+        setFormValues(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: name === 'isActive' ? checked : value
         }));
+
+        // Clear error when field is edited
+        if (formErrors[name]) {
+            setFormErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const handleDateChange = (name, date) => {
+        setFormValues(prev => ({
+            ...prev,
+            [name]: date
+        }));
+
+        // Clear error when field is edited
+        if (formErrors[name]) {
+            setFormErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const validateForm = () => {
+        const errors = {};
+
+        if (!formValues.name.trim()) {
+            errors.name = 'Name is required';
+        }
+
+        if (!formValues.amount) {
+            errors.amount = 'Amount is required';
+        } else if (isNaN(formValues.amount) || parseFloat(formValues.amount) <= 0) {
+            errors.amount = 'Amount must be a positive number';
+        }
+
+        if (formValues.endDate && formValues.startDate > formValues.endDate) {
+            errors.endDate = 'End date cannot be before start date';
+        }
+
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setIsSubmitting(true);
+        if (!validateForm()) return;
+
+        setLoading(true);
         setError('');
 
         try {
             const budgetData = {
-                ...formData,
-                amount: parseFloat(formData.amount),
-                startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
-                endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null
+                name: formValues.name,
+                amount: parseFloat(formValues.amount),
+                category: formValues.category,
+                startDate: formValues.startDate.toISOString(),
+                endDate: formValues.endDate ? formValues.endDate.toISOString() : null,
+                isActive: formValues.isActive
             };
 
+            let result;
             if (budget) {
-                await updateBudget(budget.id, budgetData);
+                result = await updateBudget(budget.id, budgetData);
             } else {
-                await addBudget(budgetData);
+                result = await addBudget(budgetData);
             }
 
-            navigate('/budgets');
+            if (result.success) {
+                navigate('/budgets');
+            } else {
+                setFormErrors(result.errors || {});
+                setError(result.errors?.general || 'Failed to save budget');
+            }
         } catch (err) {
-            setError(err.message || 'Failed to save budget');
+            console.error('Error saving budget:', err);
+            setError('An unexpected error occurred');
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
     return (
-        <div className="budget-form-container">
-            <form onSubmit={handleSubmit} className="budget-form">
-                <h2>{budget ? 'Edit Budget' : 'Create New Budget'}</h2>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
+                {error && (
+                    <Alert severity="error" sx={{ mb: 3 }}>
+                        {error}
+                    </Alert>
+                )}
 
-                {error && <div className="form-error">{error}</div>}
-
-                <div className="form-group">
-                    <label htmlFor="title">Budget Title</label>
-                    <input
-                        type="text"
-                        id="title"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        required
-                        placeholder="e.g., Monthly Groceries"
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="amount">Budget Amount</label>
-                    <input
-                        type="number"
-                        id="amount"
-                        name="amount"
-                        value={formData.amount}
-                        onChange={handleChange}
-                        required
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="categoryId">Category (Optional)</label>
-                    <select
-                        id="categoryId"
-                        name="categoryId"
-                        value={formData.categoryId}
-                        onChange={handleChange}
-                    >
-                        <option value="">-- Select Category --</option>
-                        {categories.map(category => (
-                            <option key={category.id} value={category.id}>
-                                {category.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label htmlFor="startDate">Start Date</label>
-                        <input
-                            type="date"
-                            id="startDate"
-                            name="startDate"
-                            value={formData.startDate}
-                            onChange={handleChange}
+                <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            id="name"
+                            name="name"
+                            label="Budget Name"
+                            value={formValues.name}
+                            onChange={handleInputChange}
+                            error={!!formErrors.name}
+                            helperText={formErrors.name}
+                            placeholder="e.g., Monthly Groceries"
+                            required
                         />
-                    </div>
+                    </Grid>
 
-                    <div className="form-group">
-                        <label htmlFor="endDate">End Date</label>
-                        <input
-                            type="date"
-                            id="endDate"
-                            name="endDate"
-                            value={formData.endDate}
-                            onChange={handleChange}
-                            min={formData.startDate}
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            id="amount"
+                            name="amount"
+                            label="Budget Amount"
+                            type="number"
+                            value={formValues.amount}
+                            onChange={handleInputChange}
+                            error={!!formErrors.amount}
+                            helperText={formErrors.amount}
+                            InputProps={{
+                                startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                            }}
+                            required
                         />
-                    </div>
-                </div>
+                    </Grid>
 
-                <div className="form-group checkbox-group">
-                    <input
-                        type="checkbox"
-                        id="isActive"
-                        name="isActive"
-                        checked={formData.isActive}
-                        onChange={handleChange}
-                    />
-                    <label htmlFor="isActive">Active Budget</label>
-                </div>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth>
+                            <InputLabel id="category-label">Category</InputLabel>
+                            <Select
+                                labelId="category-label"
+                                id="category"
+                                name="category"
+                                value={formValues.category}
+                                onChange={handleInputChange}
+                                label="Category"
+                            >
+                                <MenuItem value="">
+                                    <em>All Categories</em>
+                                </MenuItem>
+                                {EXPENSE_CATEGORIES.map(category => (
+                                    <MenuItem key={category} value={category}>
+                                        {category}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                            <FormHelperText>Optional - for category-specific budget</FormHelperText>
+                        </FormControl>
+                    </Grid>
 
-                <div className="form-actions">
-                    <button
-                        type="button"
-                        className="btn btn-secondary"
+                    <Grid item xs={12} sm={6}>
+                        <DatePicker
+                            label="Start Date"
+                            value={formValues.startDate}
+                            onChange={(date) => handleDateChange('startDate', date)}
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                    error: !!formErrors.startDate,
+                                    helperText: formErrors.startDate
+                                }
+                            }}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                        <DatePicker
+                            label="End Date (Optional)"
+                            value={formValues.endDate}
+                            onChange={(date) => handleDateChange('endDate', date)}
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                    error: !!formErrors.endDate,
+                                    helperText: formErrors.endDate
+                                }
+                            }}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={formValues.isActive}
+                                    onChange={handleInputChange}
+                                    name="isActive"
+                                    color="primary"
+                                />
+                            }
+                            label="Active Budget"
+                        />
+                    </Grid>
+                </Grid>
+
+                <Divider sx={{ my: 4 }} />
+
+                <Stack direction="row" justifyContent="flex-end" spacing={2}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<CancelIcon />}
                         onClick={() => navigate('/budgets')}
-                        disabled={isSubmitting}
+                        disabled={loading}
                     >
                         Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type="submit"
-                        className="btn btn-primary"
-                        disabled={isSubmitting}
+                        variant="contained"
+                        startIcon={<SaveIcon />}
+                        disabled={loading}
                     >
-                        {isSubmitting ? 'Saving...' : (budget ? 'Update Budget' : 'Create Budget')}
-                    </button>
-                </div>
-            </form>
-        </div>
+                        {loading ? (
+                            <>
+                                <CircularProgress size={24} sx={{ mr: 1 }} />
+                                Saving...
+                            </>
+                        ) : (
+                            budget ? 'Update Budget' : 'Create Budget'
+                        )}
+                    </Button>
+                </Stack>
+            </Box>
+        </LocalizationProvider>
     );
 };
 
