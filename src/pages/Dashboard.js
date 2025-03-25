@@ -16,6 +16,7 @@ import {
     ListItemSecondaryAction,
     Divider,
     Avatar,
+    Stack,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
@@ -23,6 +24,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import { Line, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -175,13 +177,22 @@ const Dashboard = () => {
                 <Typography variant="h4" component="h1" fontWeight="bold">
                     Dashboard
                 </Typography>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => navigate('/expenses/new')}
-                >
-                    Add Expense
-                </Button>
+                <Stack direction="row" spacing={2}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<BarChartIcon />}
+                        onClick={() => navigate('/analytics')}
+                    >
+                        View Analytics
+                    </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => navigate('/expenses/new')}
+                    >
+                        Add Expense
+                    </Button>
+                </Stack>
             </Box>
 
             {/* Stats Cards */}

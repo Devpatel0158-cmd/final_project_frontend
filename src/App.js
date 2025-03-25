@@ -29,6 +29,7 @@ import AddBudgetNew from './pages/AddBudgetNew';
 import EditBudgetNew from './pages/EditBudgetNew';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Analytics from './pages/Analytics';
 
 function App() {
     return (
@@ -55,6 +56,7 @@ function App() {
                                         <Route path="expenses" element={<Expenses />} />
                                         <Route path="expenses/new" element={<AddExpense />} />
                                         <Route path="expenses/edit/:id" element={<EditExpense />} />
+                                        <Route path="analytics" element={<Analytics />} />
 
                                         {/* Original Budget Routes */}
                                         <Route path="budget" element={<Budget />} />
