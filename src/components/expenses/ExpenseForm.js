@@ -1,269 +1,373 @@
 import React, { useState, useEffect } from 'react';
-import { useExpenses } from '../../contexts/ExpenseContext';
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS, createExpense } from '../../models/Expense';
-import Card from '../ui/Card';
-import Input from '../ui/Input';
-import Select from '../ui/Select';
-import Checkbox from '../ui/Checkbox';
-import TextArea from '../ui/TextArea';
-import Button from '../ui/Button';
-import FormGroup from '../components/forms/FormGroup';
-import FormError from '../components/forms/FormError';
-import { formatDateForInput, formatNumber } from '../../utils/formatters';
-import './ExpenseForm.css';
+import { useNavigate } from 'react-router-dom';
+import {
+  Container,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  InputAdornment,
+  Alert,
+  ListItemIcon,
+  ListItemText
+} from '@mui/material';
+import api from '../../utils/api';
+import { toast } from 'react-toastify';
+// Import icons for categories
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import HomeIcon from '@mui/icons-material/Home';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import SchoolIcon from '@mui/icons-material/School';
+import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import FlightIcon from '@mui/icons-material/Flight';
+import PetsIcon from '@mui/icons-material/Pets';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
-const ExpenseForm = ({
-    expenseId = null,
-    onSave,
-    onCancel
-}) => {
-    const { addExpense, updateExpense, getExpenseById } = useExpenses();
+// Map of category icons
+const categoryIcons = {
+  'Food & Dining': <RestaurantIcon />,
+  'Shopping': <ShoppingCartIcon />,
+  'Housing': <HomeIcon />,
+  'Transportation': <DirectionsCarIcon />,
+  'Healthcare': <LocalHospitalIcon />,
+  'Education': <SchoolIcon />,
+  'Entertainment': <SportsEsportsIcon />,
+  'Travel': <FlightIcon />,
+  'Pets': <PetsIcon />,
+  'Other': <MoreHorizIcon />
+};
 
-    // Initialize with an empty expense
-    const [expense, setExpense] = useState(() => createExpense());
-    const [errors, setErrors] = useState({});
-    const [loading, setLoading] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
+const ExpenseForm = () => {
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-    // If expenseId is provided, load the expense data
-    useEffect(() => {
-        if (expenseId) {
-            const existingExpense = getExpenseById(expenseId);
-            if (existingExpense) {
-                setExpense(existingExpense);
-            }
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/categories');
+        setCategories(response.data || []);
+        if (response.data?.length > 0) {
+          setCategory(response.data[0].id);
         }
-    }, [expenseId, getExpenseById]);
-
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-
-        setExpense(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
-
-        // Clear any error for this field
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('Failed to load categories');
+      }
     };
 
-    const handleAmountChange = (e) => {
-        let { value } = e.target;
+    fetchCategories();
+  }, []);
 
-        // Allow only numbers and decimal point
-        if (value && !/^[0-9]*\.?[0-9]*$/.test(value)) {
-            return;
-        }
+  const validateForm = () => {
+    if (!description.trim()) {
+      setError('Description is required');
+      return false;
+    }
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      setError('Please enter a valid amount');
+      return false;
+    }
+    if (!category) {
+      setError('Please select a category');
+      return false;
+    }
+    if (!date) {
+      setError('Please select a date');
+      return false;
+    }
+    return true;
+  };
 
-        // Convert to number for storage
-        const numValue = value === '' ? 0 : parseFloat(value);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-        setExpense(prev => ({
-            ...prev,
-            amount: numValue
-        }));
+    if (!validateForm()) {
+      return;
+    }
 
-        // Clear any error for this field
-        if (errors.amount) {
-            setErrors(prev => ({ ...prev, amount: '' }));
-        }
-    };
+    setIsLoading(true);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmitted(true);
+    try {
+      const expenseData = {
+        description: description.trim(),
+        amount: parseFloat(amount),
+        date: date, // Already in YYYY-MM-DD format from the date input
+        categoryId: category,
+        isRecurring: false,
+        recurringFrequency: null
+      };
 
-        setLoading(true);
+      await api.post('/expenses', expenseData);
 
-        try {
-            // Add or update the expense
-            const result = expenseId
-                ? await updateExpense(expenseId, expense)
-                : await addExpense(expense);
+      toast.success('Expense added successfully!');
+      navigate('/');
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to add expense';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-            if (result.success) {
-                if (onSave) {
-                    onSave(result.expense);
+  // Helper function to get the category icon
+  const getCategoryIcon = (categoryName) => {
+    return categoryIcons[categoryName] || <MoreHorizIcon />;
+  };
+
+  return (
+    <Container maxWidth="sm" sx={{
+      minHeight: 'calc(100vh - 100px)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-start',
+      pt: 4,
+      background: '#f5f0e8',
+    }}>
+      <Paper elevation={0} sx={{
+        p: 4,
+        borderRadius: 2,
+        background: '#ffffff',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+      }}>
+        <Typography variant="h5" align="center" gutterBottom sx={{ color: '#333333', fontWeight: 600, mb: 3 }}>
+          Add Expense
+        </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>
+            {error}
+          </Alert>
+        )}
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            margin="normal"
+            required
+            disabled={isLoading}
+            error={!!error && error.includes('Description')}
+            sx={{
+              mb: 2.5,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#ffffff',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                '&:hover': {
+                  borderColor: '#bdbdbd'
+                },
+                '&.Mui-focused': {
+                  borderColor: '#2563eb',
+                  boxShadow: '0 0 0 2px rgba(37, 99, 235, 0.1)'
                 }
-            } else {
-                setErrors(result.errors || {});
-            }
-        } catch (error) {
-            console.error('Failed to save expense:', error);
-            setErrors({ general: 'Failed to save expense. Please try again.' });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCancel = () => {
-        if (onCancel) {
-            onCancel();
-        }
-    };
-
-    return (
-        <div className="expense-form-container">
-            <Card title={expenseId ? 'Edit Expense' : 'Add New Expense'}>
-                {errors.general && (
-                    <div className="expense-form-error">
-                        <FormError>{errors.general}</FormError>
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="expense-form">
-                    {/* Amount Field */}
-                    <FormGroup>
-                        <Input
-                            label="Amount"
-                            type="text"
-                            name="amount"
-                            id="amount"
-                            value={expense.amount === 0 && !submitted ? '' : formatNumber(expense.amount)}
-                            onChange={handleAmountChange}
-                            placeholder="0.00"
-                            required
-                            error={errors.amount}
-                        />
-                        {errors.amount && <FormError>{errors.amount}</FormError>}
-                    </FormGroup>
-
-                    {/* Description Field */}
-                    <FormGroup>
-                        <Input
-                            label="Description"
-                            type="text"
-                            name="description"
-                            id="description"
-                            value={expense.description}
-                            onChange={handleChange}
-                            placeholder="What was this expense for?"
-                            required
-                            error={errors.description}
-                        />
-                        {errors.description && <FormError>{errors.description}</FormError>}
-                    </FormGroup>
-
-                    {/* Category Field */}
-                    <FormGroup>
-                        <Select
-                            label="Category"
-                            name="category"
-                            id="category"
-                            value={expense.category}
-                            onChange={handleChange}
-                            required
-                            error={errors.category}
-                        >
-                            {EXPENSE_CATEGORIES.map(category => (
-                                <option key={category} value={category}>
-                                    {category}
-                                </option>
-                            ))}
-                        </Select>
-                        {errors.category && <FormError>{errors.category}</FormError>}
-                    </FormGroup>
-
-                    {/* Date Field */}
-                    <FormGroup>
-                        <Input
-                            label="Date"
-                            type="date"
-                            name="date"
-                            id="date"
-                            value={formatDateForInput(expense.date)}
-                            onChange={handleChange}
-                            required
-                            error={errors.date}
-                        />
-                        {errors.date && <FormError>{errors.date}</FormError>}
-                    </FormGroup>
-
-                    {/* Payment Method Field */}
-                    <FormGroup>
-                        <Select
-                            label="Payment Method"
-                            name="paymentMethod"
-                            id="paymentMethod"
-                            value={expense.paymentMethod}
-                            onChange={handleChange}
-                        >
-                            {PAYMENT_METHODS.map(method => (
-                                <option key={method} value={method}>
-                                    {method}
-                                </option>
-                            ))}
-                        </Select>
-                    </FormGroup>
-
-                    {/* Notes Field */}
-                    <FormGroup>
-                        <TextArea
-                            label="Notes (Optional)"
-                            name="notes"
-                            id="notes"
-                            value={expense.notes}
-                            onChange={handleChange}
-                            placeholder="Add any additional details"
-                            rows={3}
-                        />
-                    </FormGroup>
-
-                    {/* Recurring Expense Checkbox */}
-                    <FormGroup>
-                        <Checkbox
-                            label="Recurring Expense"
-                            name="isRecurring"
-                            id="isRecurring"
-                            checked={expense.isRecurring}
-                            onChange={handleChange}
-                        />
-                    </FormGroup>
-
-                    {/* Show recurring frequency options if isRecurring is checked */}
-                    {expense.isRecurring && (
-                        <FormGroup>
-                            <Select
-                                label="Frequency"
-                                name="recurringFrequency"
-                                id="recurringFrequency"
-                                value={expense.recurringFrequency || 'monthly'}
-                                onChange={handleChange}
-                            >
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="biweekly">Bi-weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="quarterly">Quarterly</option>
-                                <option value="annually">Annually</option>
-                            </Select>
-                        </FormGroup>
-                    )}
-
-                    {/* Form Actions */}
-                    <div className="expense-form-actions">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleCancel}
-                            disabled={loading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            disabled={loading}
-                        >
-                            {loading ? 'Saving...' : expenseId ? 'Update Expense' : 'Add Expense'}
-                        </Button>
-                    </div>
-                </form>
-            </Card>
-        </div>
-    );
+              },
+              '& .MuiInputLabel-root': {
+                color: '#555555'
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#2563eb'
+              },
+              '& .MuiOutlinedInput-input': {
+                color: '#333333'
+              }
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Amount"
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            margin="normal"
+            required
+            disabled={isLoading}
+            error={!!error && error.includes('amount')}
+            InputProps={{
+              startAdornment: <InputAdornment position="start">$</InputAdornment>,
+              inputProps: { min: "0", step: "0.01" }
+            }}
+            sx={{
+              mb: 2.5,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#ffffff',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                '&:hover': {
+                  borderColor: '#bdbdbd'
+                },
+                '&.Mui-focused': {
+                  borderColor: '#2563eb',
+                  boxShadow: '0 0 0 2px rgba(37, 99, 235, 0.1)'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#555555'
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#2563eb'
+              },
+              '& .MuiOutlinedInput-input': {
+                color: '#333333'
+              }
+            }}
+          />
+          <FormControl
+            fullWidth
+            margin="normal"
+            error={!!error && error.includes('category')}
+            sx={{
+              mb: 2.5,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#ffffff',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                '&:hover': {
+                  borderColor: '#bdbdbd'
+                },
+                '&.Mui-focused': {
+                  borderColor: '#2563eb',
+                  boxShadow: '0 0 0 2px rgba(37, 99, 235, 0.1)'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#555555'
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#2563eb'
+              },
+              '& .MuiSelect-select': {
+                color: '#333333'
+              }
+            }}
+          >
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+              disabled={isLoading || categories.length === 0}
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    bgcolor: 'background.paper',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    '& .MuiMenuItem-root': {
+                      py: 1.5,
+                      px: 2,
+                      color: '#333333'
+                    }
+                  }
+                }
+              }}
+            >
+              {categories.map((cat) => (
+                <MenuItem key={cat.id} value={cat.id} sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  '&:hover': {
+                    bgcolor: 'rgba(37, 99, 235, 0.08)'
+                  }
+                }}>
+                  <ListItemIcon sx={{ color: 'primary.main', minWidth: 36 }}>
+                    {getCategoryIcon(cat.name)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={cat.name}
+                    primaryTypographyProps={{
+                      sx: {
+                        fontWeight: 500,
+                        color: '#333333'
+                      }
+                    }}
+                    secondary={cat.description}
+                    secondaryTypographyProps={{
+                      sx: {
+                        fontSize: '0.75rem',
+                        color: '#666666'
+                      }
+                    }}
+                  />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            label="Date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            margin="normal"
+            required
+            disabled={isLoading}
+            error={!!error && error.includes('date')}
+            InputLabelProps={{
+              shrink: true,
+              style: { color: '#333333', fontWeight: 500 }
+            }}
+            sx={{
+              mb: 3,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: '#ffffff',
+                borderRadius: 2,
+                border: '1px solid #e0e0e0',
+                '&:hover': {
+                  borderColor: '#bdbdbd'
+                },
+                '&.Mui-focused': {
+                  borderColor: '#2563eb',
+                  boxShadow: '0 0 0 2px rgba(37, 99, 235, 0.1)'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#333333'
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#2563eb'
+              },
+              '& .MuiOutlinedInput-input': {
+                color: '#333333'
+              }
+            }}
+          />
+          <Button
+            fullWidth
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{
+              mt: 1,
+              py: 1.5,
+              borderRadius: 2,
+              fontSize: '1rem',
+              fontWeight: 500,
+              boxShadow: '0 4px 6px rgba(37, 99, 235, 0.2)'
+            }}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Adding Expense...' : 'Add Expense'}
+          </Button>
+        </form>
+      </Paper>
+    </Container>
+  );
 };
 
 export default ExpenseForm; 

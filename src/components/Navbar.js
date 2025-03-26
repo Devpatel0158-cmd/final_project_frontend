@@ -1,58 +1,57 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import AuthNav from './AuthNav';
-import { useAuth } from '../contexts/AuthContext';
-import './Navbar.css';
+import { Link, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
-    const { isAuthenticated } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-    return (
-        <nav className="navbar">
-            <div className="navbar-logo">
-                <NavLink to="/">Expense Tracker</NavLink>
-            </div>
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
-            {isAuthenticated ? (
-                <ul className="navbar-links">
-                    <li>
-                        <NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>
-                            Home
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
-                            Dashboard
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/expenses" className={({ isActive }) => isActive ? 'active' : ''}>
-                            Expenses
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/analytics" className={({ isActive }) => isActive ? 'active' : ''}>
-                            Analytics
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/budget" className={({ isActive }) => isActive ? 'active' : ''}>
-                            Budget
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/budgets" className={({ isActive }) => isActive ? 'active' : ''}>
-                            Budgets v2
-                        </NavLink>
-                    </li>
-                </ul>
-            ) : (
-                <div className="navbar-spacer"></div>
-            )}
-
-            <AuthNav />
-        </nav>
-    );
+  return (
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6" component={Link} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
+          Expense Tracker
+        </Typography>
+        {user ? (
+          <Box>
+            <Button color="inherit" component={Link} to="/">
+              Dashboard
+            </Button>
+            <Button color="inherit" component={Link} to="/add-expense">
+              Add Expense
+            </Button>
+            <Button color="inherit" component={Link} to="/categories">
+              Categories
+            </Button>
+            <Button color="inherit" component={Link} to="/add-budget">
+              Add Budget
+            </Button>
+            <Button color="inherit" component={Link} to="/profile">
+              Profile
+            </Button>
+            <Button color="inherit" onClick={handleLogout}>
+              Logout
+            </Button>
+          </Box>
+        ) : (
+          <Box>
+            <Button color="inherit" component={Link} to="/login">
+              Login
+            </Button>
+            <Button color="inherit" component={Link} to="/register">
+              Register
+            </Button>
+          </Box>
+        )}
+      </Toolbar>
+    </AppBar>
+  );
 };
 
 export default Navbar; 

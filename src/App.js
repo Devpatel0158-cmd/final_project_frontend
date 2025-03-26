@@ -1,81 +1,68 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import { CssBaseline } from '@mui/material';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import theme from './theme';
-import './App.css';
-
-// Context Providers
 import { AuthProvider } from './contexts/AuthContext';
-import { ExpenseProvider } from './contexts/ExpenseContext';
-import { BudgetProvider } from './contexts/BudgetContext';
-
-// Components
-import Layout from './components/Layout';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
-
-// Pages
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import Expenses from './pages/Expenses';
-import AddExpense from './pages/AddExpense';
-import EditExpense from './pages/EditExpense';
-import Budget from './pages/Budget';
-import AddBudget from './pages/AddBudget';
-import EditBudget from './pages/EditBudget';
-import Budgets from './pages/Budgets';
-import AddBudgetNew from './pages/AddBudgetNew';
-import EditBudgetNew from './pages/EditBudgetNew';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Analytics from './pages/Analytics';
+import PrivateRoute from './components/PrivateRoute';
+import Navigation from './components/Navigation';
+import Login from './components/Login';
+import Register from './components/Register';
+import Dashboard from './components/Dashboard';
+import Expenses from './components/Expenses';
+import Analytics from './components/Analytics';
+import NewExpense from './components/NewExpense';
+import MonthlyBudget from './components/MonthlyBudget';
+import notificationService from './services/notificationService';
 
 function App() {
-    return (
+  useEffect(() => {
+    // Start the notification service when the app mounts
+    notificationService.start();
+
+    // Clean up when the app unmounts
+    return () => {
+      notificationService.stop();
+    };
+  }, []);
+
+  return (
+    <AuthProvider>
+      <Router>
         <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <AuthProvider>
-                <ExpenseProvider>
-                    <BudgetProvider>
-                        <BrowserRouter>
-                            <Routes>
-                                {/* Public Layout Routes */}
-                                <Route path="/" element={<Layout />}>
-                                    <Route index element={<Home />} />
-
-                                    {/* Auth Routes - accessible only when NOT authenticated */}
-                                    <Route element={<PublicRoute />}>
-                                        <Route path="login" element={<Login />} />
-                                        <Route path="register" element={<Register />} />
-                                    </Route>
-
-                                    {/* Protected Routes - accessible only when authenticated */}
-                                    <Route element={<ProtectedRoute />}>
-                                        <Route path="dashboard" element={<Dashboard />} />
-                                        <Route path="expenses" element={<Expenses />} />
-                                        <Route path="expenses/new" element={<AddExpense />} />
-                                        <Route path="expenses/edit/:id" element={<EditExpense />} />
-                                        <Route path="analytics" element={<Analytics />} />
-
-                                        {/* Original Budget Routes */}
-                                        <Route path="budget" element={<Budget />} />
-                                        <Route path="budget/new" element={<AddBudget />} />
-                                        <Route path="budget/edit/:id" element={<EditBudget />} />
-
-                                        {/* New Budgets Routes */}
-                                        <Route path="budgets" element={<Budgets />} />
-                                        <Route path="budgets/new" element={<AddBudgetNew />} />
-                                        <Route path="budgets/edit/:id" element={<EditBudgetNew />} />
-                                    </Route>
-                                </Route>
-                            </Routes>
-                        </BrowserRouter>
-                    </BudgetProvider>
-                </ExpenseProvider>
-            </AuthProvider>
+          <CssBaseline />
+          <div className="App">
+            <Navigation />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
+              <Route path="/expenses/new" element={<PrivateRoute><NewExpense /></PrivateRoute>} />
+              <Route path="/expenses/edit/:id" element={<PrivateRoute><NewExpense /></PrivateRoute>} />
+              <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+              <Route path="/budgets" element={<PrivateRoute><MonthlyBudget /></PrivateRoute>} />
+              <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            </Routes>
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="dark"
+            />
+          </div>
         </ThemeProvider>
-    );
+      </Router>
+    </AuthProvider>
+  );
 }
 
-export default App; 
+export default App;

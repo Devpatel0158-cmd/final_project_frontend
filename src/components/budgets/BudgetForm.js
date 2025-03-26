@@ -1,286 +1,213 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Box,
-    TextField,
-    Button,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    FormHelperText,
-    Grid,
-    InputAdornment,
-    FormControlLabel,
-    Switch,
-    CircularProgress,
-    Alert,
-    Divider,
-    Stack
+  Container,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  InputAdornment,
+  Alert,
+  Grid
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { useBudgets } from '../../contexts/BudgetContext';
-import { EXPENSE_CATEGORIES } from '../../models/Expense';
+import api from '../../utils/api';
+import { toast } from 'react-toastify';
 
-const BudgetForm = ({ budget = null }) => {
-    const navigate = useNavigate();
-    const { addBudget, updateBudget } = useBudgets();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+const BudgetForm = () => {
+  const [amount, setAmount] = useState('');
+  const [period, setPeriod] = useState('monthly');
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const [formValues, setFormValues] = useState({
-        name: '',
-        amount: '',
-        category: '',
-        startDate: new Date(),
-        endDate: null,
-        isActive: true
-    });
-
-    const [formErrors, setFormErrors] = useState({});
-
-    useEffect(() => {
-        if (budget) {
-            setFormValues({
-                name: budget.name || '',
-                amount: budget.amount ? budget.amount.toString() : '',
-                category: budget.category || '',
-                startDate: budget.startDate ? new Date(budget.startDate) : new Date(),
-                endDate: budget.endDate ? new Date(budget.endDate) : null,
-                isActive: budget.isActive !== undefined ? budget.isActive : true
-            });
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/categories');
+        setCategories(response.data || []);
+        if (response.data?.length > 0) {
+          setCategory(response.data[0].id);
         }
-    }, [budget]);
-
-    const handleInputChange = (e) => {
-        const { name, value, checked } = e.target;
-        setFormValues(prev => ({
-            ...prev,
-            [name]: name === 'isActive' ? checked : value
-        }));
-
-        // Clear error when field is edited
-        if (formErrors[name]) {
-            setFormErrors(prev => ({ ...prev, [name]: '' }));
-        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('Failed to load categories');
+      }
     };
 
-    const handleDateChange = (name, date) => {
-        setFormValues(prev => ({
-            ...prev,
-            [name]: date
-        }));
+    fetchCategories();
+  }, []);
 
-        // Clear error when field is edited
-        if (formErrors[name]) {
-            setFormErrors(prev => ({ ...prev, [name]: '' }));
-        }
-    };
+  const validateForm = () => {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      setError('Please enter a valid amount');
+      return false;
+    }
+    if (!category) {
+      setError('Please select a category');
+      return false;
+    }
+    if (!startDate || !endDate) {
+      setError('Please select both start and end dates');
+      return false;
+    }
+    if (startDate > endDate) {
+      setError('Start date must be before end date');
+      return false;
+    }
+    return true;
+  };
 
-    const validateForm = () => {
-        const errors = {};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-        if (!formValues.name.trim()) {
-            errors.name = 'Name is required';
-        }
+    if (!validateForm()) {
+      return;
+    }
 
-        if (!formValues.amount) {
-            errors.amount = 'Amount is required';
-        } else if (isNaN(formValues.amount) || parseFloat(formValues.amount) <= 0) {
-            errors.amount = 'Amount must be a positive number';
-        }
+    setIsLoading(true);
 
-        if (formValues.endDate && formValues.startDate > formValues.endDate) {
-            errors.endDate = 'End date cannot be before start date';
-        }
+    try {
+      const budgetData = {
+        amount: parseFloat(amount),
+        period,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        categoryId: category
+      };
 
-        setFormErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
+      await api.post('/budgets', budgetData);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!validateForm()) return;
+      toast.success('Budget added successfully!');
+      navigate('/budgets');
+    } catch (error) {
+      console.error('Error adding budget:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to add budget';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        setLoading(true);
-        setError('');
-
-        try {
-            const budgetData = {
-                name: formValues.name,
-                amount: parseFloat(formValues.amount),
-                category: formValues.category,
-                startDate: formValues.startDate.toISOString(),
-                endDate: formValues.endDate ? formValues.endDate.toISOString() : null,
-                isActive: formValues.isActive
-            };
-
-            let result;
-            if (budget) {
-                result = await updateBudget(budget.id, budgetData);
-            } else {
-                result = await addBudget(budgetData);
-            }
-
-            if (result.success) {
-                navigate('/budgets');
-            } else {
-                setFormErrors(result.errors || {});
-                setError(result.errors?.general || 'Failed to save budget');
-            }
-        } catch (err) {
-            console.error('Error saving budget:', err);
-            setError('An unexpected error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
-                {error && (
-                    <Alert severity="error" sx={{ mb: 3 }}>
-                        {error}
-                    </Alert>
-                )}
-
-                <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                        <TextField
-                            fullWidth
-                            id="name"
-                            name="name"
-                            label="Budget Name"
-                            value={formValues.name}
-                            onChange={handleInputChange}
-                            error={!!formErrors.name}
-                            helperText={formErrors.name}
-                            placeholder="e.g., Monthly Groceries"
-                            required
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                        <TextField
-                            fullWidth
-                            id="amount"
-                            name="amount"
-                            label="Budget Amount"
-                            type="number"
-                            value={formValues.amount}
-                            onChange={handleInputChange}
-                            error={!!formErrors.amount}
-                            helperText={formErrors.amount}
-                            InputProps={{
-                                startAdornment: <InputAdornment position="start">$</InputAdornment>,
-                            }}
-                            required
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth>
-                            <InputLabel id="category-label">Category</InputLabel>
-                            <Select
-                                labelId="category-label"
-                                id="category"
-                                name="category"
-                                value={formValues.category}
-                                onChange={handleInputChange}
-                                label="Category"
-                            >
-                                <MenuItem value="">
-                                    <em>All Categories</em>
-                                </MenuItem>
-                                {EXPENSE_CATEGORIES.map(category => (
-                                    <MenuItem key={category} value={category}>
-                                        {category}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                            <FormHelperText>Optional - for category-specific budget</FormHelperText>
-                        </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                        <DatePicker
-                            label="Start Date"
-                            value={formValues.startDate}
-                            onChange={(date) => handleDateChange('startDate', date)}
-                            slotProps={{
-                                textField: {
-                                    fullWidth: true,
-                                    error: !!formErrors.startDate,
-                                    helperText: formErrors.startDate
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                        <DatePicker
-                            label="End Date (Optional)"
-                            value={formValues.endDate}
-                            onChange={(date) => handleDateChange('endDate', date)}
-                            slotProps={{
-                                textField: {
-                                    fullWidth: true,
-                                    error: !!formErrors.endDate,
-                                    helperText: formErrors.endDate
-                                }
-                            }}
-                        />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={formValues.isActive}
-                                    onChange={handleInputChange}
-                                    name="isActive"
-                                    color="primary"
-                                />
-                            }
-                            label="Active Budget"
-                        />
-                    </Grid>
-                </Grid>
-
-                <Divider sx={{ my: 4 }} />
-
-                <Stack direction="row" justifyContent="flex-end" spacing={2}>
-                    <Button
-                        variant="outlined"
-                        startIcon={<CancelIcon />}
-                        onClick={() => navigate('/budgets')}
-                        disabled={loading}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        startIcon={<SaveIcon />}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <CircularProgress size={24} sx={{ mr: 1 }} />
-                                Saving...
-                            </>
-                        ) : (
-                            budget ? 'Update Budget' : 'Create Budget'
-                        )}
-                    </Button>
-                </Stack>
-            </Box>
-        </LocalizationProvider>
-    );
+  return (
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Add Budget
+        </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Amount"
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            margin="normal"
+            required
+            disabled={isLoading}
+            error={!!error && error.includes('amount')}
+            InputProps={{
+              startAdornment: <InputAdornment position="start">$</InputAdornment>,
+              inputProps: { min: "0", step: "0.01" }
+            }}
+          />
+          <FormControl fullWidth margin="normal" error={!!error && error.includes('category')}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+              disabled={isLoading || categories.length === 0}
+            >
+              {categories.map((cat) => (
+                <MenuItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Period</InputLabel>
+            <Select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              required
+              disabled={isLoading}
+            >
+              <MenuItem value="monthly">Monthly</MenuItem>
+              <MenuItem value="yearly">Yearly</MenuItem>
+            </Select>
+          </FormControl>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Start Date"
+                  value={startDate}
+                  onChange={setStartDate}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      required
+                      disabled={isLoading}
+                      error={!!error && error.includes('date')}
+                    />
+                  )}
+                />
+              </LocalizationProvider>
+            </Grid>
+            <Grid item xs={6}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="End Date"
+                  value={endDate}
+                  onChange={setEndDate}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      fullWidth
+                      required
+                      disabled={isLoading}
+                      error={!!error && error.includes('date')}
+                    />
+                  )}
+                />
+              </LocalizationProvider>
+            </Grid>
+          </Grid>
+          <Button
+            fullWidth
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Adding Budget...' : 'Add Budget'}
+          </Button>
+        </form>
+      </Paper>
+    </Container>
+  );
 };
 
 export default BudgetForm; 

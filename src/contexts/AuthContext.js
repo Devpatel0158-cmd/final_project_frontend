@@ -1,98 +1,141 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { saveToStorage, getFromStorage, removeFromStorage } from '../utils/storageUtils';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../services/api';
+import { toast } from 'react-toastify';
 
-// Create the authentication context
 const AuthContext = createContext();
 
-// Storage key for the auth data
-const AUTH_STORAGE_KEY = 'expense_tracker_auth';
-
-// Initial auth state
-const initialAuthState = {
-    isAuthenticated: false,
-    user: null,
-    token: null,
-};
-
 export const AuthProvider = ({ children }) => {
-    // Initialize state from local storage or default values
-    const [auth, setAuth] = useState(() => {
-        const storedAuth = getFromStorage(AUTH_STORAGE_KEY, initialAuthState);
-        return storedAuth;
-    });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      loadUser();
+    } else {
+      setLoading(false);
+    }
+  }, []);
 
-    // Update local storage when auth state changes
-    useEffect(() => {
-        if (auth.isAuthenticated) {
-            saveToStorage(AUTH_STORAGE_KEY, auth);
-        } else {
-            removeFromStorage(AUTH_STORAGE_KEY);
-        }
-        setLoading(false);
-    }, [auth]);
+  const loadUser = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      setUser(res.data);
+    } catch (err) {
+      localStorage.removeItem('token');
+      delete api.defaults.headers.common['Authorization'];
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Login function
-    const login = (userData, token) => {
-        setAuth({
-            isAuthenticated: true,
-            user: userData,
-            token: token,
-        });
-    };
+  const register = async (formData) => {
+    try {
+      const res = await api.post('/auth/register', formData);
+      if (res.data && res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        await loadUser();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      const errorMsg = err.response?.data?.errors?.[0]?.msg || 'Registration failed';
+      toast.error(errorMsg);
+      return false;
+    }
+  };
 
-    // Logout function
-    const logout = () => {
-        setAuth(initialAuthState);
-    };
+  const login = async (formData) => {
+    try {
+      const res = await api.post('/auth/login', formData);
+      localStorage.setItem('token', res.data.token);
+      api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      await loadUser();
+      toast.success('Login successful!');
+      return true;
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0]?.msg || 'Login failed');
+      return false;
+    }
+  };
 
-    // Update user data
-    const updateUser = (userData) => {
-        setAuth(prevAuth => ({
-            ...prevAuth,
-            user: { ...prevAuth.user, ...userData },
-        }));
-    };
+  const logout = () => {
+    localStorage.removeItem('token');
+    delete api.defaults.headers.common['Authorization'];
+    setUser(null);
+    toast.success('Logged out successfully');
+  };
 
-    // Register function (will connect to API in future)
-    const register = async (name, email, password) => {
-        // For now, just simulate a successful registration
-        const userData = { id: Date.now(), name, email };
-        const token = 'simulated-jwt-token';
+  const updateProfile = async (formData) => {
+    try {
+      const res = await api.put('/auth/me', formData);
+      setUser(res.data);
+      toast.success('Profile updated successfully');
+      return true;
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0]?.msg || 'Profile update failed');
+      return false;
+    }
+  };
 
-        // After successful registration, log the user in
-        login(userData, token);
+  const forgotPassword = async (email) => {
+    try {
+      await api.post('/auth/forgot-password', { email });
+      toast.success('Password reset email sent. Please check your inbox.');
+      return true;
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0]?.msg || 'Failed to send reset email');
+      return false;
+    }
+  };
 
-        return { success: true, user: userData };
-    };
+  const resetPassword = async (token, password) => {
+    try {
+      await api.post('/auth/reset-password', { token, password });
+      toast.success('Password reset successful. Please login with your new password.');
+      return true;
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0]?.msg || 'Password reset failed');
+      return false;
+    }
+  };
 
-    // Context value to be provided
-    const contextValue = {
-        isAuthenticated: auth.isAuthenticated,
-        user: auth.user,
-        token: auth.token,
+  const verifyEmail = async (token) => {
+    try {
+      await api.get(`/auth/verify-email?token=${token}`);
+      toast.success('Email verified successfully');
+      return true;
+    } catch (err) {
+      toast.error(err.response?.data?.errors?.[0]?.msg || 'Email verification failed');
+      return false;
+    }
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
         loading,
+        register,
         login,
         logout,
-        register,
-        updateUser,
-    };
-
-    return (
-        <AuthContext.Provider value={contextValue}>
-            {children}
-        </AuthContext.Provider>
-    );
+        updateProfile,
+        forgotPassword,
+        resetPassword,
+        verifyEmail,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Custom hook for using the auth context
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
-
-export default AuthContext; 
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}; 
