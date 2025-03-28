@@ -1,3 +1,10 @@
+/*
+    Author: Bhuwan Shrestha, Shubh Soni, Dev Patel, Alen varghese
+    Description: This is the main file for the application.
+    Project Name: Expense Tracker
+    date: 2025-March 28
+
+*/
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

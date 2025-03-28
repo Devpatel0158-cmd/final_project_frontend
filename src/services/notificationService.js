@@ -1,3 +1,10 @@
+/*
+    Author: Bhuwan Shrestha, Shubh Soni, Dev Patel, Alen varghese
+    Description: This is the notification service for the application.
+    Project Name: Expense Tracker
+    date: 2025-March 28
+
+*/
 import { toast } from 'react-toastify';
 import api from './api';
 
@@ -11,7 +18,7 @@ class NotificationService {
   start() {
     const token = localStorage.getItem('token');
     console.log('Starting notification service...', { hasToken: !!token });
-    
+
     if (!token) {
       console.log('No authentication token found, notification service will not start');
       return;
@@ -37,7 +44,7 @@ class NotificationService {
     try {
       console.log('Checking notifications...');
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         console.log('No authentication token found during check, skipping');
         return;
@@ -47,7 +54,7 @@ class NotificationService {
       console.log('Fetching budget alerts...');
       const alertsResponse = await api.get('/budgets/alerts');
       console.log('Budget alerts response:', alertsResponse.data);
-      
+
       if (alertsResponse.data.success && alertsResponse.data.data.length > 0) {
         console.log('Found', alertsResponse.data.data.length, 'budget alerts');
         alertsResponse.data.data.forEach(alert => {
@@ -61,7 +68,7 @@ class NotificationService {
       console.log('Fetching notifications...');
       const notificationsResponse = await api.get('/budgets/notifications');
       console.log('Notifications response:', notificationsResponse.data);
-      
+
       if (notificationsResponse.data.success && notificationsResponse.data.data.length > 0) {
         console.log('Found', notificationsResponse.data.data.length, 'notifications');
         notificationsResponse.data.data.forEach(notification => {

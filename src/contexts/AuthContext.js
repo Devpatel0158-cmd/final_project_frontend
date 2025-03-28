@@ -1,3 +1,10 @@
+/*
+    Author: Bhuwan Shrestha, Shubh Soni, Dev Patel, Alen varghese
+    Description: This is the context for the authentication.
+    Project Name: Expense Tracker
+    date: 2025-March 28
+
+*/
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';

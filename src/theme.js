@@ -1,3 +1,10 @@
+/*
+    Author: Bhuwan Shrestha, Shubh Soni, Dev Patel, Alen varghese
+    Description: This is the theme file for the application.
+    Project Name: Expense Tracker
+    date: 2025-March 28
+
+*/
 import { createTheme } from '@mui/material/styles';
 
 const themeOptions = {

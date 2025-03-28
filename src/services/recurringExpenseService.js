@@ -1,5 +1,11 @@
-import api from './api';
+/*
+    Author: Bhuwan Shrestha, Shubh Soni, Dev Patel, Alen varghese
+    Description: This is the recurring expense service for the application.
+    Project Name: Expense Tracker
+    date: 2025-March 28
 
+*/
+import api from './api';
 class RecurringExpenseService {
   async processRecurringExpenses() {
     try {
